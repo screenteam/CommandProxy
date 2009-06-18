@@ -27,12 +27,16 @@ CommandProxy = {
 	call : function( command, parameters, callback ){
 		if( !parameters )
 			parameters = {}; 
+
 		
 		parameters.applicationDirectory = air.File.applicationDirectory.nativePath; 
 		
 		if( CommandProxy.url == "" ){
-			if( callback != undefined ){
+			if( callback ){
 				callback( { "error" : "no connection to the command proxy" } );
+			}
+			else{
+				return { "error" : "no connection to the command proxy" }; 
 			}
 		}
 		else{
@@ -41,25 +45,37 @@ CommandProxy = {
 			for( var param in parameters ){
 				paramString += encodeURI( param ) + "=" + encodeURI( parameters[param] ) + "&"; 
 			}
+			
+			var async = (typeof (callback) == "function");
 
 			var req = new XMLHttpRequest();
-			req.open( "POST", CommandProxy.url + command, true ); 
+			req.open( "POST", CommandProxy.url + command, async ); 
+			
 			req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			req.setRequestHeader("Content-length", paramString.length);
 			req.setRequestHeader("Connection", "close");
-			req.onreadystatechange = function(){
-				if( req.readystate == 4 && callback ){
-					alert( req.status ); 
-					if( req.status == 200 ){
-						callback( eval( req.responseText ) ); 
-					}
-					else{
-						callback( { "error" : req.responseText } ); 
-					}
-				}
-			};
 			
-			req.send( paramString ); 
+			if( async ){
+				req.onreadystatechange = function(){
+					
+					if( req.readystate == 4 && callback ) {
+						if( req.status == 200 ){
+							callback( JSON.parse( req.responseText ) ); 
+						}
+						else{
+							callback( { "error" : req.responseText } ); 
+						}
+					}
+				};
+				req.send( paramString ); 
+			}
+			else{
+				req.send( paramString ); 
+				
+				var ret = JSON.parse( req.responseText );
+				
+				return ret; 
+			}
 		}
 	},
 	

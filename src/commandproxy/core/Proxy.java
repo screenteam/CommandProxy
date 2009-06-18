@@ -83,12 +83,12 @@ public class Proxy implements Container {
 		Log.debug.println( "------------------------------" ); 
 		Log.debug.println( "Response: " );
 		if( result == null ){
-			Log.debug.println( "(None)" ); 
+			result = new JSONObject(); 
 		}
-		else{
-			Log.debug.println( result.render( true ) ); 
-			out.println( result.render( true ) );
-		}
+		
+		Log.debug.println( result.render( true ) );
+		res.add( "Content-type", "text/html; charset=UTF-8" ); 
+		out.println( result.render( true ) );
 		
 		out.flush(); 
 		out.close(); 
@@ -135,13 +135,7 @@ public class Proxy implements Container {
 			return null; 
 		}
 		else{
-			File appDir = new File( "" );  
-		
-			if( params.get( "applicationDirectory" ) != null ){
-				appDir = new File( params.get( "applicationDirectory" ) ); 
-			}
-		
-			return new File( appDir, filename );
+			return new File( filename ); 
 		}
 	}
 }

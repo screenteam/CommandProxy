@@ -10,6 +10,7 @@ import com.sdicons.json.model.JSONObject;
 import commandproxy.core.Command;
 import commandproxy.core.CommandException;
 import commandproxy.core.Log;
+import commandproxy.core.Proxy;
 
 /**
  * Opens a file according to the application associated with it. 
@@ -35,20 +36,22 @@ public class Open implements Command{
 	
 	public JSONObject execute( Map<String, String> parameters ) throws CommandException{
 		String filename = parameters.get( "file" );
-		String applicationDirectory = parameters.get( "applicationDirectory" ); 
+		File file = Proxy.getFile( filename, parameters ); 
 		
-		File appDir = new File( "" ); 
-		if( applicationDirectory != null ){
-			appDir = new File( applicationDirectory ); 
-		}
+		try {
+			Thread.sleep( 5000 );
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} 
 		
-		
-		if( filename == null ){
+		if( file == null ){
 			throw new CommandException( "Paramter file not set!", this ); 
 		}
+		else if( !file.exists() ){
+			throw new CommandException( "File does not exist: " + file.getAbsolutePath(), this ); 
+		}
 		else{
-			File file = new File( appDir, filename );
-			
 			try{
 				Log.debug.println( "Opening " + file.getAbsolutePath() ); 
 				
