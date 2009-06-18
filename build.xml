@@ -1,0 +1,76 @@
+<project name="Command Proxy" default="release">
+	<fileset id="libs" dir="lib" includes="**/*.jar" />
+	
+	<target name="compile">
+		<mkdir dir="bin" />
+		<javac srcdir="src" destdir="bin" target="1.5" debug="true" debuglevel="lines,vars,source">
+			<classpath>
+				<fileset refid="libs" />
+			</classpath>
+		</javac>
+	</target>
+		
+	
+	<target name="jars" depends="compile">
+		<mkdir dir="jars" />
+		
+		<jar destfile="jars/commandproxy-cli.jar">
+			<zipgroupfileset dir="lib" includes="*.jar" />
+			<fileset dir="bin" />
+		</jar>
+		<jar destfile="jars/commandproxy-launcher.jar">
+			<zipgroupfileset dir="lib" includes="*.jar" />
+			<fileset dir="bin" excludes="commandproxy/cli/**"/>
+		</jar>
+	</target>
+	
+	<target name="release" depends="jars">
+		<mkdir dir="release" />
+		<zip destfile="release/commandproxy.zip">
+			<fileset dir=".">
+				<include name="jars/**" />
+				<include name="files/**" />
+				<include name="commandproxy.bat" />
+				<include name="CommandProxy.js" />
+				<include name="files/**" />
+				<exclude name="files/test/**" />
+			</fileset>
+		</zip>
+	</target>
+	
+	<target name="test-windows" depends="jars">
+		<mkdir dir="release" />
+		<mkdir dir="release/test" />
+		<java classname="commandproxy.cli.Main" dir="release/test" fork="true">
+			<classpath>
+				<fileset file="jars/commandproxy-cli.jar" />
+			</classpath>
+			<arg line="export windows ../../files/test/OMA.air" />
+		</java>
+	</target>
+	
+	<target name="test-mac" depends="jars">
+		<mkdir dir="release" />
+		<mkdir dir="release/test" />
+		<java classname="commandproxy.cli.Main" dir="release/test" fork="true">
+			<classpath>
+				<fileset file="jars/commandproxy-cli.jar" />
+			</classpath>
+			<arg line="export mac ../../files/test/OMA.air" />
+		</java>
+	</target>
+	
+	<target name="test-debug" depends="jars">
+		<java classname="commandproxy.cli.Main" fork="true">
+			<classpath>
+				<fileset file="jars/commandproxy-cli.jar" />
+			</classpath>
+			<arg line="debug -verbose" />
+		</java>
+	</target>
+	
+	<target name="clean">
+		<delete dir="bin" />
+		<delete dir="jars" />
+	</target>
+</project>
