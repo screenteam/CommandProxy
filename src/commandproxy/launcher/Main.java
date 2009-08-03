@@ -18,6 +18,9 @@ import commandproxy.core.Log;
 import commandproxy.core.Proxy;
 
 public class Main implements Constants{
+	private static Process process; 
+	private static boolean restart; 
+	
 	/**
 	 * All the arguments are passed along to the air-app
 	 * @param args
@@ -30,7 +33,7 @@ public class Main implements Constants{
 		if( args.length > 0 ){
 			String c = args[0]; 
 			if( c.startsWith( "--help" ) || c.startsWith( "/?" ) || c.startsWith( "-h" ) ){
-				Log.info.println( "Usage: [--help] [<air-arg1> [<air-arg2> ...]]" ); 
+				Log.debug.println( "Usage: [--help] [<air-arg1> [<air-arg2> ...]]" ); 
 				System.exit( 0 ); 
 			}
 		}
@@ -47,12 +50,7 @@ public class Main implements Constants{
 		
 		// Logging in Dateien schrieben.... 
 		try {
-			PrintStream log = new PrintStream( "log.txt" );
-			Log.info =  log; 
-			Log.error = log; 
-			Log.debug = log; 
-			Log.warn = log; 
-			Log.setVerbose( true ); 
+			Log.logToFile( new File( "log.txt" ), true ); 
 		}
 		catch ( FileNotFoundException e ) {
 			e.printStackTrace();
@@ -77,20 +75,25 @@ public class Main implements Constants{
 			
 			// Great! 
 			// We're up and running!
-			Log.info.println( "CommandProxy running on localhost:" + port );
+			Log.debug.println( "CommandProxy running on localhost:" + port );
 
-			// Launch the AIR app
+			// Add final params
 			execArgs.add( "--port=" + port );
-			final Process p = Runtime.getRuntime().exec( execArgs.toArray( new String[]{} ) ); 
 			
 			// Kill Air if this server is killed
 			Runtime.getRuntime().addShutdownHook( new Thread(){
 				public void run(){
-					p.destroy(); 
+					process.destroy(); 
 				}
 			}); 
+			
 			// Wait until it dies
-			p.waitFor(); 
+			restart = true; 
+			while( restart ){
+				restart = false; 
+				process = Runtime.getRuntime().exec( execArgs.toArray( new String[]{} ) ); 
+				process.waitFor(); 
+			}
 			
 			// Bye! 
 			connection.close();
@@ -141,5 +144,12 @@ public class Main implements Constants{
 		Log.error.println( message ); 
 		JOptionPane.showMessageDialog( null, message, "Error", JOptionPane.ERROR_MESSAGE );
 		System.exit( exitCode ); 
+	}
+	
+	/**
+	 * Restart... 
+	 */
+	public static void restart(){
+		restart = true; 
 	}
 }
