@@ -21,8 +21,8 @@ public class Main implements Constants{
 		if( args[0].equals( "debug" ) ){
 			for( int i = 1; i < args.length; i++ ){
 				if( args[i].equals( "-verbose" ) ){
-					Log.info.println( "Enabling verbose mode" ); 
-					Log.setVerbose( true ); 
+					Log.debug.println( "Enabling verbose mode" ); 
+					Log.logToCommandLine( true ); 
 				}
 			}
 			new DebugProxy();
@@ -49,10 +49,10 @@ public class Main implements Constants{
 			for( int i = 1; i < args.length; i++ ){
 				if( args[i].startsWith( "-out=" ) ){
 					outFile = new File( airFile.getParent(), args[i].substring( 5 ) );
-					Log.info.println( "Output to " + outFile.getAbsolutePath() ); 
+					Log.debug.println( "Output to " + outFile.getAbsolutePath() ); 
 				}
 				if( args[i].startsWith( "-verbose" ) ){
-					Log.setVerbose( true ); 
+					Log.logToCommandLine( true ); 
 				}
 			}
 			

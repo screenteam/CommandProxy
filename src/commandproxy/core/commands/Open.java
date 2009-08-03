@@ -38,13 +38,6 @@ public class Open implements Command{
 		String filename = parameters.get( "file" );
 		File file = Proxy.getFile( filename, parameters ); 
 		
-		try {
-			Thread.sleep( 5000 );
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} 
-		
 		if( file == null ){
 			throw new CommandException( "Paramter file not set!", this ); 
 		}

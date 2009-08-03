@@ -16,6 +16,7 @@ import com.sdicons.json.model.JSONString;
 import commandproxy.core.commands.ChangeEncoding;
 import commandproxy.core.commands.Exec;
 import commandproxy.core.commands.Open;
+import commandproxy.core.commands.Restart;
 
 public class Proxy implements Container {
 	// All the commands we know
@@ -30,6 +31,7 @@ public class Proxy implements Container {
 		registerCommand( new Open() ); 
 		registerCommand( new Exec() ); 
 		registerCommand( new ChangeEncoding() ); 
+		registerCommand( new Restart() ); 
 	}
 	
 	
