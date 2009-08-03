@@ -125,7 +125,7 @@ public class Tools {
 		if( "".equals( conf.get( "filename" ) ) )
 			fail( "filename specified in the Air application descriptor is empty", Constants.E_AIR_FILE_INVALD ); 
 		
-		if( "".equals( conf.get( "name" ) ) )
+		if( "".equals( conf.get( "id" ) ) )
 			fail( "name specified in the Air application descriptor is empty", Constants.E_AIR_FILE_INVALD ); 
 		
 		/*if( "".equals( conf.get( "vendor" ) ) )
