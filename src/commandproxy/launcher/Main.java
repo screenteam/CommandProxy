@@ -1,7 +1,9 @@
 package commandproxy.launcher;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Vector;
@@ -41,6 +43,19 @@ public class Main implements Constants{
 		}
 		else{
 			execArgs.add( executable.getAbsolutePath() ); 
+		}
+		
+		// Logging in Dateien schrieben.... 
+		try {
+			PrintStream log = new PrintStream( "log.txt" );
+			Log.info =  log; 
+			Log.error = log; 
+			Log.debug = log; 
+			Log.warn = log; 
+			Log.setVerbose( true ); 
+		}
+		catch ( FileNotFoundException e ) {
+			e.printStackTrace();
 		}
 		
 		// Append the user arguments
