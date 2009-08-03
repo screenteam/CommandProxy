@@ -36,6 +36,18 @@
 				<exclude name="files/test/**" />
 			</fileset>
 		</zip>
+		<chmod file="commandproxy.sh" perm="755" />
+		
+		<tar destfile="release/commandproxy.tar.gz" compression="gzip">
+			<tarfileset file="commandproxy.sh" mode="755"/>
+			<fileset dir=".">
+				<include name="jars/**" />
+				<include name="files/**" />
+				<include name="CommandProxy.js" />
+				<include name="files/**" />
+				<exclude name="files/test/**" />
+			</fileset>
+		</tar>
 	</target>
 	
 	<target name="test-windows" depends="jars">
