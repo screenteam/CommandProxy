@@ -3,7 +3,8 @@ package commandproxy.launcher;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Vector;
@@ -91,7 +92,11 @@ public class Main implements Constants{
 			restart = true; 
 			while( restart ){
 				restart = false; 
-				process = Runtime.getRuntime().exec( execArgs.toArray( new String[]{} ) ); 
+				process = Runtime.getRuntime().exec( execArgs.toArray( new String[]{} ) );
+				
+				new Forwarder( process.getErrorStream(), Log.error );
+				new Forwarder( process.getInputStream(), Log.debug );
+				
 				process.waitFor(); 
 			}
 			
@@ -151,5 +156,33 @@ public class Main implements Constants{
 	 */
 	public static void restart(){
 		restart = true; 
+	}
+	
+	/**
+	 * Forward process output to an output stream
+	 */
+	private static class Forwarder extends Thread{
+		private InputStream in; 
+		private OutputStream out; 
+		
+		public Forwarder( InputStream in, OutputStream out ){
+			this.in = in; 
+			start(); 
+		}
+		
+		public void run(){
+			try{
+				int len = 0; 
+				byte buffer[] = new byte[1024]; 
+				
+				while( ( len = in.read() ) > 0 ){
+					out.write( buffer, 0, len ); 
+				}
+			}
+			catch( Exception e ){
+				// Whatever...
+				// e.printStackTrace( Log.error ); 
+			}
+		}
 	}
 }
