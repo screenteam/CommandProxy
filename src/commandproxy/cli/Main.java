@@ -48,7 +48,7 @@ public class Main implements Constants{
 			
 			for( int i = 1; i < args.length; i++ ){
 				if( args[i].startsWith( "-out=" ) ){
-					outFile = new File( airFile.getParent(), args[i].substring( 5 ) );
+					outFile = new File( args[i].substring( 5 ) );
 					Log.debug.println( "Output to " + outFile.getAbsolutePath() ); 
 				}
 				if( args[i].startsWith( "-verbose" ) ){

@@ -38,8 +38,7 @@ public class Tools {
 			"                    By default <air-filename>-<version>.exe/dmg will be used. \n" +
 			"                    \n" +
 			"        -verbose:   Get more detailed output. This should be interresting only\n" +
-			"                    if\n" +
-			"                    the build process fails\n"
+			"                    if the build process fails\n"
 		); 
 	}
 	
