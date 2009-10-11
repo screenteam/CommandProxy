@@ -31,11 +31,21 @@ public class Proxy implements Container {
 		registerCommand( new Open() ); 
 		registerCommand( new Exec() ); 
 		registerCommand( new ChangeEncoding() ); 
-		registerCommand( new Restart() ); 
+		registerCommand( new Restart() );
+		
 	}
 	
+	/**
+	 * Adds commands from a plugin-loader
+	 */
+	public void loadPlugins( PluginLoader loader ){
+		// Register plugins from the plugin-loader
+		loader.loadPlugins( commands ); 
+	}
+
 	
 	public void handle( Request req, Response res ){
+		res.add( "Content-type", "text/html; charset=UTF-8" ); 
 		Log.debug.println( "==============================" );
 
 		String path = req.getPath().getName(); 
@@ -46,7 +56,7 @@ public class Proxy implements Container {
 		// Do we even have a handler for this?
 		if( command == null ){
 			Log.debug.println( "Invalid command requested: " + path ); 
-			abort( res, 404, "Command not found" );  
+			abort( res, "Command not found: " + path );  
 			return; 
 		}
 		
@@ -59,7 +69,7 @@ public class Proxy implements Container {
 		}
 		catch( IOException e ){
 			Log.debug.println( "Invalid post parameters" ); 
-			abort( res, 500, "Can't read post parameters" );
+			abort( res, "Can't read post parameters" );
 			e.printStackTrace(); 
 			return; 
 		}
@@ -89,7 +99,6 @@ public class Proxy implements Container {
 		}
 		
 		Log.debug.println( result.render( true ) );
-		res.add( "Content-type", "text/html; charset=UTF-8" ); 
 		out.println( result.render( true ) );
 		
 		out.flush(); 
@@ -114,11 +123,12 @@ public class Proxy implements Container {
 	 * @param code The http status code
 	 * @param message An error message, to be a little debug-friendlier
 	 */
-	private void abort( Response res, int code, String message ){
+	private void abort( Response res, String message ){
 		try{
-			res.setCode(  code ); 
-			res.commit(); 
-			res.getPrintStream().print(  message ); 
+			JSONObject result = new JSONObject();
+			result.getValue().put( "error", new JSONString( "Execution failed: " + message ) ); 
+
+			res.getPrintStream().print( result.render( true ) ); 
 			res.getPrintStream().flush(); 
 			res.close();
 		}

@@ -2,7 +2,7 @@
 ; Use it as you desire.
 ; Credit given to so many people of the NSIS forum.
 
-!define AppName "${name}"
+!define AppName "${id}"
 !define AppVersion "${version}"
 !define SetupFile "${setupFile}"
 !define ShortName "${filename}"
@@ -17,6 +17,8 @@
 
 !addplugindir "${NSISDIR}\..\nsis_reg\Plugin"
 !addincludedir "${NSISDIR}\..\nsis_reg\Include"
+
+!addplugindir "${NSISDIR}\..\nsis_nsunzip\Plugin"
 
 !include "MUI2.nsh"
 !include "Sections.nsh"
@@ -89,12 +91,30 @@ Section "Files"
 	File "${ShortName}.exe"
 	File "/oname=$TEMP\${ShortName}.air" "${AirFile}"
 	
+	; Is the air-app already installed? 
+	Call tweakAirApp
+	Pop $R8
+	StrCmp $R8 "OK" onlyUnzip
+	Goto realInstall
+	
+	onlyUnzip:
+		;ZipDLL::extractall "$TEMP\${ShortName}.air" "$INSTDIR\test"
+		nsUnzip::Extract "$TEMP\${ShortName}.air" "/d=$INSTDIR\air\${ShortName}" /END
+
+		;MessageBox MB_OK "unzippi pippi nach $INSTDIR\air\${ShortName}"
+		Goto done
+		
+		
+	realInstall: 
+	;MessageBox MB_OK "Real install..."
+	
 	; Now find that airappinstaller.exe
 	Call findAirExecutable
 	Pop $R0
 	nsExec::ExecToStack '"$R0" -silent -location "$INSTDIR\air" "$TEMP\${ShortName}.air"'
 	Pop $0
 
+	;MessageBox MB_OK "Result=$0; executable=$R0"
 	; Great, it's installed! 
 	; Yea... not really, thing is... the air installer seems to fork a new 
 	; process, which sucks. So let's give this up to ten tries... 
@@ -120,10 +140,11 @@ SectionEnd
  
  
 Section "Shortcuts"
-	CreateShortCut "$SMPROGRAMS\${AppName}.lnk" "$INSTDIR\${ShortName}.exe" "" "$INSTDIR\${ShortName}.exe" 0
-
+	CreateDirectory "$SMPROGRAMS\${AppName}"
+	CreateShortCut "$SMPROGRAMS\${AppName}\${ShortName}.lnk" "$INSTDIR\${ShortName}.exe" "" "$INSTDIR\${ShortName}.exe" 0
+	CreateShortCut "$SMPROGRAMS\${AppName}\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
 SectionEnd
- 
+
 
  
 Function .onInit
@@ -155,7 +176,7 @@ FunctionEnd
 
 Function tweakAirApp
 	${registry::Open} "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" '/N=InstallLocation /T=REG_KEY' $0
-	StrCpy $1 "$INSTDIR\air" ; This is insane, but somehow nsis understands that i mean $INSTDIR + "air"
+	StrCpy $1 "$INSTDIR\air"
 	StrLen $2 $1
 	StrCpy $4 "NOK"
 	; R0 = path
@@ -300,27 +321,35 @@ FunctionEnd
 Section "Uninstall"
 	; uninstall all the air packages we installed
 	${registry::Open} "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" '/N=InstallLocation /T=REG_KEY' $0
-	StrCpy $1 "$INSTDIR\air" ; This is insane, but somehow nsis understands that i mean $INSTDIR + "air"
+	StrCpy $1 "$INSTDIR\air"
 	StrLen $2 $1
+
+	;MessageBox MB_OK "uninstall..."
 	
 	next: 
 		${registry::Find} "$0" $R0 $R1 $R2 $R3
 		StrCmp "$R0" "" done
+		;MessageBox MB_OK "$1 == $3?..."
 		StrCpy $3 "$R2" "$2"
 		StrCmp "$1" "$3" found
 		Goto next
 		
 	found: 
+		;MessageBox MB_OK "Read $RO / $R1?..."
+		
 		ReadRegStr $R1 HKLM "$R0" "UninstallString"
 		nsExec::ExecToStack "$R1 /quiet /qn"
 		Goto next
 		
 	done: 
+	;MessageBox MB_OK "dahan!"
+	
 	${registry::Close} "$0"
 	${registry::Unload}	
 	
 	; remove registry keys
 	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${ShortName}"
-	Delete "$SMPROGRAMS\${AppName}"
+	;Delete "$SMPROGRAMS\${AppName}"
+	RMDir /r "$SMPROGRAMS\${AppName}"
 	RMDir /r "$INSTDIR"
 SectionEnd

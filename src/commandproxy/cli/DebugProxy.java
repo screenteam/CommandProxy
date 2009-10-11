@@ -1,5 +1,6 @@
 package commandproxy.cli;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
@@ -7,6 +8,7 @@ import org.simpleframework.transport.connect.SocketConnection;
 
 import commandproxy.core.Constants;
 import commandproxy.core.Log;
+import commandproxy.core.PluginLoader;
 import commandproxy.core.Proxy;
 
 public class DebugProxy extends Thread{
@@ -23,6 +25,8 @@ public class DebugProxy extends Thread{
 			
 			// Let's set up the command proxy
 			Proxy proxy = new Proxy(); 
+			proxy.loadPlugins( new PluginLoader( new File( "plugins" ) ) ); 
+			
 			SocketConnection connection = new SocketConnection( proxy );
 			InetSocketAddress address = new InetSocketAddress( "127.0.0.1", port );  
 			connection.connect( address );

@@ -37,6 +37,7 @@ public class Main implements Constants{
 			String os = args[1]; 
 			File outFile = null;
 			File airFile = new File( args[args.length-1] );
+			File templateFile = null; 
 			
 			if( !os.equals( "windows" ) && !os.equals( "mac" ) ){
 				failEarly( "Operating system unknown: " + os, E_UNSUPPORTED_OS ); 
@@ -54,6 +55,9 @@ public class Main implements Constants{
 				if( args[i].startsWith( "-verbose" ) ){
 					Log.logToCommandLine( true ); 
 				}
+				if( args[i].startsWith( "-template=" ) ){
+					templateFile = new File( args[i].substring( 10 ) );
+				}
 			}
 			
 			if( os.equals( "windows" ) ){
@@ -66,7 +70,7 @@ public class Main implements Constants{
 			}
 			else if( os.equals( "mac" ) ){
 				try{
-					ExportMac.export( airFile, null, null ); 
+					ExportMac.export( airFile, outFile, templateFile ); 
 				}
 				catch( Exception e ){
 					e.printStackTrace(); 

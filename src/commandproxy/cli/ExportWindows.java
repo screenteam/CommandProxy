@@ -17,6 +17,7 @@ import commandproxy.core.Log;
 
 import static commandproxy.cli.Tools.*; 
 
+// TODO: Don't display nsis output if it didn't fail! 
 public class ExportWindows implements Constants{
 
 	public static void export( File airFile, File setupFile ) throws IOException, ParserConfigurationException, SAXException, InterruptedException{
@@ -34,7 +35,7 @@ public class ExportWindows implements Constants{
 		
 		// Look for the output file
 		if( setupFile == null ){
-			setupFile = new File( conf.get( "filename" ) + "-" + conf.get( "version" ) + "-setup.exe" );  
+			setupFile = new File( conf.get( "filename" ) + "-" + conf.get( "version" ) + "-setup.exe" );
 		}
 		conf.put( "setupFile", setupFile.getAbsolutePath() ); 
 		conf.put( "airFile", airFile.getAbsolutePath() ); 
@@ -72,8 +73,9 @@ public class ExportWindows implements Constants{
 		copy( getCommandProxyFile( "files/windows/launcher.jsmooth" ), launchFile, conf );
 		copy( getCommandProxyFile( "jars/commandproxy-launcher.jar" ), temp );
 		
-		int result = Tools.exec( temp, jSmoothExe, launchFile.getAbsolutePath() );
-		if( result != 0 ){
+		ProcessHelper jSmooth = new ProcessHelper( temp, jSmoothExe, launchFile.getAbsolutePath() );
+		if( jSmooth.getReturnCode() != 0 ){
+			jSmooth.getException().printStackTrace( Log.error ); 
 			Tools.fail( "Executable failed to build", E_EXPORT_FAILED );
 		}
 		
@@ -85,12 +87,14 @@ public class ExportWindows implements Constants{
 		
 		copy( getCommandProxyFile( "files/windows/installer.nsi" ), temp, conf );
 		
-		result = Tools.exec( temp, nsisExe, nsisFile.getAbsolutePath() );
-		if( result != 0 ){
+		ProcessHelper nsis = new ProcessHelper( temp, nsisExe, nsisFile.getAbsolutePath() );
+		if( nsis.getReturnCode() != 0 ){
+			nsis.getException().printStackTrace( Log.error ); 
 			Tools.fail( "Installer failed to build", E_EXPORT_FAILED ); 
 		}
 		
 		// Done? Done! 
+		deleteDirectory( temp ); 
 		System.out.println( "Success!" ); 
 	}
 }
