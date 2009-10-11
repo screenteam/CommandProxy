@@ -2,8 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/antlr/antlr.jar"/>
-	<classpathentry kind="lib" path="lib/jsontools/jsontools-core-1.7.jar"/>
 	<classpathentry kind="lib" path="lib/simple-server/simple-4.1.10.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

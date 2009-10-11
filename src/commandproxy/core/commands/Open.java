@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-import com.sdicons.json.model.JSONObject;
+import org.json.JSONObject;
 
 import commandproxy.core.Command;
 import commandproxy.core.CommandException;
@@ -71,7 +71,7 @@ public class Open implements Command{
 			}
 			catch( IOException e ){
 				e.printStackTrace(); 
-				throw new CommandException( "File could not be opened", this ); 
+				throw new CommandException( "File could not be opened", this, e ); 
 			} 
 		}
 		

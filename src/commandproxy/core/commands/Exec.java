@@ -7,15 +7,15 @@ import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.Vector;
 
-import com.sdicons.json.model.JSONObject;
-import com.sdicons.json.model.JSONValue;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import commandproxy.core.Command;
 import commandproxy.core.CommandException;
 
 public class Exec implements Command{
 
-	public JSONObject execute( Map<String, String> params ) throws CommandException{
+	public JSONObject execute( Map<String, String> params ) throws CommandException, JSONException{
 		String executable = params.get( "executable"  ); 
 		Vector<String> args = new Vector<String>(); 
 		args.add( executable ); 
@@ -33,9 +33,9 @@ public class Exec implements Command{
 			process.waitFor(); 
 			
 			JSONObject result = new JSONObject(); 
-			result.getValue().put( "exitCode", JSONValue.decorate( process.exitValue() ) );
-			result.getValue().put( "output", JSONValue.decorate( in.getValue() ) ); 
-			result.getValue().put( "error", JSONValue.decorate( err.getValue() ) );
+			result.put( "exitCode", process.exitValue() );
+			result.put( "output", in.getValue() ); 
+			result.put( "error", err.getValue() );
 			
 			return result; 
 		}

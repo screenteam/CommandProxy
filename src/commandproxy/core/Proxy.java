@@ -6,12 +6,11 @@ import java.io.PrintStream;
 import java.util.Hashtable;
 import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
 import org.simpleframework.http.core.Container;
-
-import com.sdicons.json.model.JSONObject;
-import com.sdicons.json.model.JSONString;
 
 import commandproxy.core.commands.ChangeEncoding;
 import commandproxy.core.commands.Exec;
@@ -81,15 +80,12 @@ public class Proxy implements Container {
 		
 		// Awsome, we have everything we need. 
 		// Now let's execute that thing!
-		JSONObject result; 
+		JSONObject result = null; 
 		try{
 			result = command.execute( parameters );
 		}
-		catch( CommandException e ){
-			Log.error.println( e.getMessage() ); 
-			e.printStackTrace( Log.error );
-			result = new JSONObject();
-			result.getValue().put( "error", new JSONString( "Execution failed: " + e.getMessage() ) ); 
+		catch( Exception e ){
+			abort( res, e.getMessage() );
 		} 
 		
 		Log.debug.println( "------------------------------" ); 
@@ -98,8 +94,13 @@ public class Proxy implements Container {
 			result = new JSONObject(); 
 		}
 		
-		Log.debug.println( result.render( true ) );
-		out.println( result.render( true ) );
+		try {
+			Log.debug.println( result.toString( 2 ) );
+		}
+		catch (JSONException e) {
+			e.printStackTrace();
+		}
+		out.println( result.toString() );
 		
 		out.flush(); 
 		out.close(); 
@@ -126,9 +127,9 @@ public class Proxy implements Container {
 	private void abort( Response res, String message ){
 		try{
 			JSONObject result = new JSONObject();
-			result.getValue().put( "error", new JSONString( "Execution failed: " + message ) ); 
+			result.put( "error", "Execution failed: " + message ); 
 
-			res.getPrintStream().print( result.render( true ) ); 
+			res.getPrintStream().print( result.toString() ); 
 			res.getPrintStream().flush(); 
 			res.close();
 		}
