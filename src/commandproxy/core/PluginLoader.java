@@ -35,7 +35,7 @@ public class PluginLoader {
 			loadPlugins( commands, info, getClass().getClassLoader() ); 
 		}
 		catch( Exception e ){
-			Log.debug.println( "No plugins found in the system classloader" );
+			// No one cares! 
 		}
 		
 		Log.debug.println( "Loading plugins from " + pluginDir.getAbsolutePath() + "..." ); 
@@ -75,7 +75,7 @@ public class PluginLoader {
 	 * @param baseDir
 	 * @return
 	 */
-	private Vector<File> findJars( File baseDir ){
+	public static Vector<File> findJars( File baseDir ){
 		Vector<File> result = new Vector<File>(); 
 		
 		for( File file : baseDir.listFiles() ){
@@ -89,6 +89,7 @@ public class PluginLoader {
 		
 		return result; 
 	}
+	
 	
 	/**
 	 * Loads all the classes found in the plugins string, 

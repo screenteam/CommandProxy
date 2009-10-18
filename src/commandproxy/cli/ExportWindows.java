@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -14,13 +16,14 @@ import org.xml.sax.SAXException;
 
 import commandproxy.core.Constants;
 import commandproxy.core.Log;
+import commandproxy.core.PluginLoader;
 
 import static commandproxy.cli.Tools.*; 
 
 // TODO: Don't display nsis output if it didn't fail! 
 public class ExportWindows implements Constants{
 
-	public static void export( File airFile, File setupFile ) throws IOException, ParserConfigurationException, SAXException, InterruptedException{
+	public static void export( File airFile, File setupFile, String plugins[] ) throws IOException, ParserConfigurationException, SAXException, InterruptedException{
 		// Create a temp directory to work in
 		System.out.println( "Creating temporary directory..." ); 
 		File temp = File.createTempFile( "commandproxy", "" );
@@ -79,6 +82,36 @@ public class ExportWindows implements Constants{
 			Tools.fail( "Executable failed to build", E_EXPORT_FAILED );
 		}
 		
+		
+		// Copy plugin files...
+		if( getCommandProxyFile( "plugins" ).exists() ){
+			System.out.println( "Copying plugins: " );
+			Vector<File> available = PluginLoader.findJars( getCommandProxyFile( "plugins" ) );  
+			File destination = new File( temp, "plugins" );
+			destination.mkdir();
+			
+			if( plugins == null ){
+				for( File plugin : available ){
+					System.out.println( "> include " + plugin.getName() );
+					copy( plugin, destination );
+				}
+			}
+			else{
+				Arrays.sort( plugins ); 
+				for( File plugin : available ){
+					if( Arrays.binarySearch( plugins, plugin.getName() ) > 0 ){
+						System.out.println( "> include " + plugin.getName() );
+						copy( plugin, destination );
+					}
+					else{
+						System.out.println( "> skip " + plugin.getName() ); 
+					}
+				}
+			}
+		}
+		else{
+			System.out.println( "Skipping plugins, plugin-directory doesn't exist" ); 
+		}
 		
 		// Create the window installer
 		System.out.println( "Creating installer..." ); 

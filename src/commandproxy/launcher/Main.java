@@ -19,6 +19,7 @@ import org.simpleframework.transport.connect.SocketConnection;
 
 import commandproxy.core.Constants;
 import commandproxy.core.Log;
+import commandproxy.core.PluginLoader;
 import commandproxy.core.Proxy;
 
 /**
@@ -70,6 +71,12 @@ public class Main implements Constants{
 			SocketConnection connection = new SocketConnection( proxy );
 			InetSocketAddress address = new InetSocketAddress( "127.0.0.1", port );  
 			connection.connect( address );
+			
+			// Load plugins... 
+			if( System.getProperties().get( "os.name" ).toString().equals(  "Mac OS X" ) ){
+				PluginLoader pluginLoader = new PluginLoader( LauncherMac.PLUGINS );
+				proxy.loadPlugins( pluginLoader );
+			}
 			
 			// Great! 
 			// We're up and running!

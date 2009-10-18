@@ -19,9 +19,11 @@ import commandproxy.core.Constants;
 
 public class LauncherMac implements Constants{
 	private static File RESOURCES = new File( System.getProperty( "APP_PACKAGE" ) + "/Contents/Resources" );
-	private static File MACOS =  new File( System.getProperty( "APP_PACKAGE" ) + "/Contents/MacOS" );
+	private static File MACOS = new File( System.getProperty( "APP_PACKAGE" ) + "/Contents/MacOS" );
 	private static File AIR_TEMPLATE = new File( "/Library/Frameworks/Adobe AIR.framework/Versions/Current/Resources/Template.app/Contents/MacOS/Template" );
 	private final static ResourceBundle BUNDLE = Main.BUNDLE; 
+	public static File PLUGINS = new File( System.getProperty( "APP_PACKAGE" ) + "/Contents/MacOS/plugins" );
+	
 	
 	public static Process exec( Vector<String> args ) throws IOException{
 		while( !isAIRInstalled() ){

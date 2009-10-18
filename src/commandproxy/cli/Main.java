@@ -38,6 +38,7 @@ public class Main implements Constants{
 			File outFile = null;
 			File airFile = new File( args[args.length-1] );
 			File templateFile = null; 
+			String plugins[] = null;  
 			
 			if( !os.equals( "windows" ) && !os.equals( "mac" ) ){
 				failEarly( "Operating system unknown: " + os, E_UNSUPPORTED_OS ); 
@@ -58,19 +59,28 @@ public class Main implements Constants{
 				if( args[i].startsWith( "-template=" ) ){
 					templateFile = new File( args[i].substring( 10 ) );
 				}
+				if( args[i].startsWith( "-plugins=" ) ){
+					String temp = args[i].substring( 9 ); 
+					if( temp.length() > 0 ){
+						plugins = temp.split( "," ); 
+					}
+					else{
+						plugins = new String[]{}; // include no plugins 
+					}
+				}
 			}
 			
 			if( os.equals( "windows" ) ){
 				try {
-					ExportWindows.export( airFile, outFile );
+					ExportWindows.export( airFile, outFile, plugins );
 				} catch (Exception e) {
 					e.printStackTrace();
-					Tools.fail( e.getMessage(), Constants.E_EXPORT_FAILED ); 
+					Tools.fail( e.getMessage(), Constants.E_EXPORT_FAILED );
 				}
 			}
 			else if( os.equals( "mac" ) ){
 				try{
-					ExportMac.export( airFile, outFile, templateFile ); 
+					ExportMac.export( airFile, outFile, templateFile, plugins ); 
 				}
 				catch( Exception e ){
 					e.printStackTrace(); 

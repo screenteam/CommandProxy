@@ -7,7 +7,7 @@ import java.util.Vector;
 import commandproxy.core.Constants;
 
 public class LauncherWindows implements Constants{
-
+	
 	public static Process exec( Vector<String> args ) throws IOException{
 		if( !new File( "air" ).exists() ){
 			Main.fail( "Air-Directory doesn't exist", E_AIR_APP_NOT_FOUND ); 

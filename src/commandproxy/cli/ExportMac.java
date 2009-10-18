@@ -1,10 +1,19 @@
 package commandproxy.cli;
 
+import static commandproxy.cli.Tools.copy;
+import static commandproxy.cli.Tools.deleteDirectory;
+import static commandproxy.cli.Tools.exec;
+import static commandproxy.cli.Tools.fail;
+import static commandproxy.cli.Tools.getAirConfig;
+import static commandproxy.cli.Tools.getCommandProxyFile;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -12,14 +21,14 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
 
+import commandproxy.cli.Tools.ProcessHelper;
 import commandproxy.core.Constants;
 import commandproxy.core.Log;
-
-import static commandproxy.cli.Tools.*; 
+import commandproxy.core.PluginLoader;
 
 public class ExportMac implements Constants{
 
-	public static void export( File airFile, File targetImage, File templateImage ) throws IOException, ParserConfigurationException, SAXException, InterruptedException{
+	public static void export( File airFile, File targetImage, File templateImage, String plugins[] ) throws IOException, ParserConfigurationException, SAXException, InterruptedException{
 		// Create a temp directory to work in
 		System.out.println( "Creating temporary directory..." ); 
 		File temp = File.createTempFile( "commandproxy", "" );
@@ -131,7 +140,6 @@ public class ExportMac implements Constants{
 		}
 		
 		// Allmost done, 
-		// copy the air file
 		File resources = new File( appPath + "/Contents/Resources" ); 
 		ProcessHelper unzip = new ProcessHelper( resources, "unzip", airFile.getAbsolutePath() );
 		if( unzip.getReturnCode() != 0 ){
@@ -140,6 +148,37 @@ public class ExportMac implements Constants{
 		}
 		//copy( new File( resources.getAbsolutePath() + "/META-INF/AIR/application.xml" ), resources );
 
+		// Copy plugins
+		if( getCommandProxyFile( "plugins" ).exists() ){
+			System.out.println( "Copying plugins: " );
+			Vector<File> available = PluginLoader.findJars( getCommandProxyFile( "plugins" ) );  
+			File destination = new File( appPath + "/Contents/MacOS/plugins" );
+			destination.mkdir();
+			
+			if( plugins == null ){
+				for( File plugin : available ){
+					System.out.println( "> include " + plugin.getName() );
+					copy( plugin, destination );
+				}
+			}
+			else{
+				Arrays.sort( plugins ); 
+				for( File plugin : available ){
+					if( Arrays.binarySearch( plugins, plugin.getName() ) > 0 ){
+						System.out.println( "> include " + plugin.getName() );
+						copy( plugin, destination );
+					}
+					else{
+						System.out.println( "> skip " + plugin.getName() ); 
+					}
+				}
+			}
+		}
+		else{
+			System.out.println( "Skipping plugins, plugin-directory doesn't exist" ); 
+		}
+		
+		
 		// unmount
 		ProcessHelper umount = new ProcessHelper( new File( "/" ), "hdiutil", "detach", mountedImage );
 		if( umount.getReturnCode() != 0 ){
@@ -164,7 +203,7 @@ public class ExportMac implements Constants{
 		
 		ProcessHelper convert = new ProcessHelper( new File( "/"), "hdiutil", "convert", tempImage.getAbsolutePath(), "-format", "UDZO", "-imagekey", "zlib-level=9", "-o", targetImage.getAbsolutePath() );
 		if( convert.getReturnCode() != 0 ){
-			convert.getException().printStackTrace( Log.error ); 
+			convert.getException().printStackTrace( Log.error );
 			fail( "Couldn't convert sparseimage to dmg", E_EXPORT_FAILED );
 		}
 		
