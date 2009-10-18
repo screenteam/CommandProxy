@@ -65,32 +65,6 @@
 		</java>
 	</target>
 	
-	<target name="test-oma" depends="jars">
-		<mkdir dir="release" />
-		<mkdir dir="release/test/" />
-		<mkdir dir="release/test/oma" />
-		
-		<java classname="commandproxy.cli.Main" dir="release/test/oma" fork="true">
-			<classpath>
-				<fileset file="jars/commandproxy-cli.jar" />
-			</classpath>
-			<arg line="export windows ../../../files/test/KohlAIR_1_0_1.air" />
-		</java>
-		<java classname="commandproxy.cli.Main" dir="release/test/oma" fork="true">
-			<classpath>
-				<fileset file="jars/commandproxy-cli.jar" />
-			</classpath>
-			<arg line="export windows ../../../files/test/KohlAIR_0_2_0.air" />
-		</java>
-		<java classname="commandproxy.cli.Main" dir="release/test/oma" fork="true">
-			<classpath>
-				<fileset file="jars/commandproxy-cli.jar" />
-			</classpath>
-			<arg line="export windows ../../../files/test/KohlAIR_0_2_5.air" />
-		</java>
-	</target>
-	
-	
 	<target name="test-mac" depends="jars">
 		<mkdir dir="release" />
 		<mkdir dir="release/test" />

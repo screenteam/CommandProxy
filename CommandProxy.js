@@ -1,6 +1,7 @@
 CommandProxy = {
 	url : "", 
 	port : "37148", 
+	key : "secret!", 
 	
 	/**
 	 * Called by AIR when the application is started.
@@ -11,6 +12,9 @@ CommandProxy = {
 		for( arg in event.arguments ){
 			if( event.arguments[arg].indexOf( "--port=" ) == 0 ){
 				CommandProxy.port = parseInt( event.arguments[arg].substring( 7 ) ); 
+			}
+			if( event.arguments[arg].indexOf( "--key=" ) == 0 ){
+				CommandProxy.key = event.arguments[arg].substring( 6 ); 
 			}
 		}
 		
@@ -27,9 +31,10 @@ CommandProxy = {
 	call : function( command, parameters, callback ){
 		if( !parameters )
 			parameters = {}; 
-
 		
-		parameters.applicationDirectory = air.File.applicationDirectory.nativePath; 
+		
+		parameters.cpAppDir = air.File.applicationDirectory.nativePath; 
+		parameters.cpKey = CommandProxy.key; 
 		
 		if( CommandProxy.url == "" ){
 			if( callback ){
@@ -47,7 +52,7 @@ CommandProxy = {
 			}
 			
 			var async = (typeof (callback) == "function");
-
+			
 			var req = new XMLHttpRequest();
 			req.open( "POST", CommandProxy.url + command, async ); 
 			
@@ -71,16 +76,11 @@ CommandProxy = {
 			}
 			else{
 				req.send( paramString ); 
-				
 				var ret = JSON.parse( req.responseText );
 				
 				return ret; 
 			}
 		}
-	},
-	
-	available : function(){
-		return port > 0; 
 	}
 };
 

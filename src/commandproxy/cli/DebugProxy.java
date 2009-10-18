@@ -24,7 +24,8 @@ public class DebugProxy extends Thread{
 			port = 37148; 
 			
 			// Let's set up the command proxy
-			Proxy proxy = new Proxy(); 
+			// The null-parameter means disables the key authentification
+			Proxy proxy = new Proxy( null ); 
 			proxy.loadPlugins( new PluginLoader( new File( "plugins" ) ) ); 
 			
 			SocketConnection connection = new SocketConnection( proxy );

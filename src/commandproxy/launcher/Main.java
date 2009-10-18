@@ -65,7 +65,8 @@ public class Main implements Constants{
 			socket.close();
 			
 			// Let's set up the command proxy
-			Proxy proxy = new Proxy(); 
+			String key = generateKey( 40 ); 
+			Proxy proxy = new Proxy( key );
 			SocketConnection connection = new SocketConnection( proxy );
 			InetSocketAddress address = new InetSocketAddress( "127.0.0.1", port );  
 			connection.connect( address );
@@ -76,6 +77,7 @@ public class Main implements Constants{
 
 			// Add final params
 			execArgs.add( "--port=" + port );
+			execArgs.add( "--key=" + key ); 
 			
 			// Kill Air if this server is killed
 			Runtime.getRuntime().addShutdownHook( new Thread(){
@@ -203,5 +205,25 @@ public class Main implements Constants{
 				// e.printStackTrace( Log.error ); 
 			}
 		}
+	}
+	
+	/**
+	 * Generates a random key of a certain length
+	 */
+	public static String generateKey( int length ){
+		char chars[] = {
+			'A','B','C','D','E','F','G','H','I','J','K','L','M',
+			'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+			'a','b','c','d','e','f','g','h','i','j','k','l','m',
+			'n','o','p','q','r','s','t','u','v','w','x','y','z',
+			'0','1','2','3','4','5','6','7','8','9','0'
+		};
+		
+		String key = ""; 
+		for( int i = 0; i < length; i++ ){
+			key += chars[ (int)( Math.random() * chars.length) ];
+		}
+		
+		return key; 
 	}
 }

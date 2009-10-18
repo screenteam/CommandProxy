@@ -19,19 +19,28 @@ import commandproxy.core.commands.Restart;
 
 public class Proxy implements Container {
 	// All the commands we know
-	private Hashtable<String, Command> commands = new Hashtable<String, Command>(); 
+	private Hashtable<String, Command> commands = new Hashtable<String, Command>();
+	private String key; 
 	
 	
 	/**
 	 * Create a new command proxy
+	 * 
+	 * No requests can be made to this instance without providing the correct 
+	 * security key. 
+	 * Turn this feature of by passing in <i>null</i> as key-value, however, 
+	 * this is only suggested when in debug mode.   
+	 * 
+	 * @param key The security key
 	 */
-	public Proxy(){
-		// Register the built-in commands
-		registerCommand( new Open() ); 
-		registerCommand( new Exec() ); 
-		registerCommand( new ChangeEncoding() ); 
-		registerCommand( new Restart() );
+	public Proxy( String key ){
+		this.key = key; 
 		
+		// Register the built-in commands
+		registerCommand( new Open() );
+		registerCommand( new Exec() );
+		registerCommand( new ChangeEncoding() );
+		registerCommand( new Restart() );
 	}
 	
 	/**
@@ -76,6 +85,11 @@ public class Proxy implements Container {
 		Log.debug.println( "Request: " + path );
 		for( String key : parameters.keySet() ){
 			Log.debug.printf( "  %10s: %s\n", key, parameters.get( key ) ); 
+		}
+		
+		if( key != null && !key.equals( parameters.get( "commandproxyKey" ) ) ){
+			Log.debug.println( "Invalid security key" ); 
+			abort( res, "Invalid security key provided" ); 
 		}
 		
 		// Awsome, we have everything we need. 
