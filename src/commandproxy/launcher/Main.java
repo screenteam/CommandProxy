@@ -1,6 +1,7 @@
 package commandproxy.launcher;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -73,10 +74,15 @@ public class Main implements Constants{
 			connection.connect( address );
 			
 			// Load plugins... 
-			if( System.getProperties().get( "os.name" ).toString().equals(  "Mac OS X" ) ){
+			if( System.getProperty( "os.name" ).startsWith(  "Windows" ) ){
+				PluginLoader pluginLoader = new PluginLoader( new File( "plugins" ) );
+				proxy.loadPlugins( pluginLoader );
+			}
+			else if( System.getProperties().get( "os.name" ).toString().equals(  "Mac OS X" ) ){
 				PluginLoader pluginLoader = new PluginLoader( LauncherMac.PLUGINS );
 				proxy.loadPlugins( pluginLoader );
 			}
+			
 			
 			// Great! 
 			// We're up and running!
