@@ -1,7 +1,9 @@
 package commandproxy.cli;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -12,6 +14,7 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Hashtable;
+import java.util.Vector;
 import java.util.zip.ZipException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -37,9 +40,16 @@ public class Tools {
 			"                    will be forced (for macintosh exports it's .dmg). \n" + 
 			"                    By default <air-filename>-<version>.exe/dmg will be used. \n" +
 			"                    \n" +
+			"        -template:  Specify disk-image template. This only makes sense when \n" + 
+			"                    export a Mac application. \n" + 
+			"                    See the commandproxy/files/mac/howto.txt for more information\n" + 
+			"                    \n" + 
+			"        -plugins:   A list of plugins to be included. \n" +
+			"                    When ommited all plugins will be included. \n" +
+			"                    Multiple plugins can be separated using a coma (,). \n" + 
+			"                    \n" + 
 			"        -verbose:   Get more detailed output. This should be interresting only\n" +
-			"                    if\n" +
-			"                    the build process fails\n"
+			"                    if the build process fails\n"
 		); 
 	}
 	
@@ -173,6 +183,30 @@ public class Tools {
 	}
 	
 	/**
+	 * Copies the contents fromDir to toDir. 
+	 * toDir will be created if it doesn't exist. 
+	 *  
+	 * @param fromDir The source directory
+	 * @param toDir The target directory
+	 * @throws IOException 
+	 */
+	public static void copyDir( File fromDir, File toDir ) throws IOException{
+		if( !toDir.exists() ){
+			toDir.mkdirs(); 
+		}
+		
+		for( File file : fromDir.listFiles() ){
+			if( file.isDirectory() ){
+				copyDir( file, new File( toDir.getAbsolutePath(), file.getName() ) );
+			}
+			else{
+				copy( file, toDir ); 
+			}
+		}
+	}
+	
+	
+	/**
 	 * Copies a file with property expansion
 	 * 
 	 * @throws IOException 
@@ -196,6 +230,51 @@ public class Tools {
 		in.close(); 
 		out.close(); 
 	}
+
+
+
+	/**
+	 * Copies the plugins-directory to a different place
+	 * @throws IOException 
+	 */
+	public static Vector<File> find( File dir, FileFilter filter ){
+		Vector<File> results = new Vector<File>(); 
+		
+		if( !dir.exists() )
+			return results; 
+		
+		for( File file : dir.listFiles() ){
+			if( file.isDirectory() ){
+				results.addAll( find( file, filter ) );
+			}
+			else if( filter.accept( file ) ){
+				results.add( file ); 
+			}
+		}
+		
+		return results; 
+	}
+
+
+
+	/**
+	 * Deletes a directory recursively
+	 * 
+	 * @param path
+	 * @return
+	 */
+	public static boolean deleteDirectory( File path ){
+		if( path.exists() ){
+			for( File file : path.listFiles() ){
+				if( file.isDirectory() )
+					deleteDirectory( file );
+				else
+					file.delete();
+			}
+		}
+		
+		return path.delete();
+	}
 	
 	/**
 	 * Runs a command, waits for it to finish and returns the error code
@@ -205,26 +284,8 @@ public class Tools {
 	 * @throws IOException 
 	 * @throws InterruptedException 
 	 */
-	public static int exec( File baseDir, String ... args ) throws IOException, InterruptedException{
-		Log.debug.println( "---------------------------------------" ); 
-		Log.debug.print( "Exec: " ); 
-		for( String arg : args )
-			Log.debug.print( arg + " " ); 
-		
-		Log.debug.println(); 
-		Log.debug.println( "- - - - - - - - - - - - - - - - - - - - " ); 
-		
-		String path = "PATH=" + System.getenv( "PATH" ) + File.pathSeparator + '"' + baseDir.getAbsolutePath() + '"'; 
-		Process p = Runtime.getRuntime().exec( args, new String[]{ path }, baseDir );
-		new StreamConnector( p.getInputStream(), Log.debug ); 
-		new StreamConnector( p.getErrorStream(), Log.debug ); 
-		
-		p.waitFor();
-		
-		Log.debug.println( "- - - - - - - - - - - - - - - - - - - - " ); 
-		Log.debug.println( "Result: " + p.exitValue() ); 
-		Log.debug.println( "---------------------------------------" ); 
-		return p.exitValue(); 
+	public static ProcessHelper exec( File baseDir, String ... args ) throws IOException, InterruptedException{
+		return new ProcessHelper( baseDir, args ); 
 	}
 	
 	
@@ -237,18 +298,8 @@ public class Tools {
 	 * @return A new file with the extension changed
 	 */
 	public static File changeExtension( File file, String extension ){
-		String name = file.getName(); 
-		
-		// Remove extension
-		int pos = name.lastIndexOf( '.' ); 
-		if( pos > 0 ){
-			return new File( name.substring( 0, pos) + "." + extension ); 
-		}
-		else{
-			return new File( name + "." + extension ); 
-		}
+		return new File( file.getParentFile(), getBaseName( file ) + "." + extension ); 
 	}
-	
 	
 	/**
 	 * Finds the basename of a file (without the extension)
@@ -299,6 +350,88 @@ public class Tools {
 				e.printStackTrace();
 			}
 		}
-	}	
+	}
+	
+	/**
+	 * A little helper class that waits for a process to finsih
+	 * and buffers all it's output
+	 * 
+	 * @author hansi
+	 *
+	 */
+	public static class ProcessHelper{
+		String in;
+		String err;
+		int returnCode; 
+		
+		String path; 
+		File baseDir; 
+		String[] args; 
+		
+		/**
+		 * Runs a command, waits for it to finish and returns error and output stream. 
+		 * 
+		 * @param baseDir The app's working directory
+		 * @param args The program arguments. The first argument is the name of the executable
+		 * @return 
+		 * @throws IOException 
+		 * @throws InterruptedException 
+		 */
+		public ProcessHelper( File baseDir, String ... args ) throws IOException, InterruptedException{
+			this.args = args; 
+			this.baseDir = baseDir; 
+			this.path = "PATH=" + System.getenv( "PATH" ) + File.pathSeparator + '"' + baseDir.getAbsolutePath() + '"'; 
+			Process p = Runtime.getRuntime().exec( args, new String[]{ path }, baseDir );
+
+			ByteArrayOutputStream errStream = new ByteArrayOutputStream();
+			ByteArrayOutputStream inStream = new ByteArrayOutputStream();
+			new StreamConnector( p.getInputStream(),  inStream );
+			new StreamConnector( p.getErrorStream(), errStream );
+			
+			p.waitFor();
+			
+			this.returnCode = p.exitValue(); 
+			this.in = inStream.toString(); 
+			this.err = errStream.toString(); 
+		}
+		
+		public String getError(){
+			return err; 
+		}
+		
+		public String getInput(){
+			return in; 
+		}
+		
+		public int getReturnCode(){
+			return returnCode; 
+		}
+		
+		/**
+		 * In case you want to throw an exception because the 
+		 * output or return code produced by this exception 
+		 * didn't fulfill your expectations you can use this to generate 
+		 * an exception that contains all information about the 
+		 * process. 
+		 * 
+		 * @return
+		 */
+		public Exception getException(){
+			String command = ""; 
+			for( String arg : args )
+				command += arg + " "; 
+			
+			return new Exception(
+				"Execution failed: \n" + 
+				"- Command: " + command + "\n" +  
+				"- Path: " + path + "\n" + 
+				"- Execution directory: " + baseDir + "\n" +
+				"- Exit code: " + returnCode + "\n" + 
+				"- Program output: \n" + in + "\n" + 
+				"- Program error: \n" + err + "\n"
+			); 
+				
+		}
+	}
 	
 }

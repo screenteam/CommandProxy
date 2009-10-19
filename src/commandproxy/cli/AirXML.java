@@ -1,5 +1,6 @@
 package commandproxy.cli;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -82,7 +83,7 @@ public class AirXML {
 		}
 		
 		trickConfig = new Properties(); 
-		trickConfig.load( new StringReader( comments ) ); 
+		trickConfig.load( new ByteArrayInputStream( comments.getBytes() ) ); 
 	}
 	
 	

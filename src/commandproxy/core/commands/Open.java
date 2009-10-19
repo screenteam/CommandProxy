@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-import com.sdicons.json.model.JSONObject;
+import org.json.JSONObject;
 
 import commandproxy.core.Command;
 import commandproxy.core.CommandException;
@@ -49,19 +49,29 @@ public class Open implements Command{
 				Log.debug.println( "Opening " + file.getAbsolutePath() ); 
 				
 				// What's our os?
+				boolean opened = false; 
+				
 				if( hasDesktopApi ){
-					Desktop.getDesktop().open( file );
+					try{
+						Desktop.getDesktop().open( file );
+						opened = true; 
+					}
+					catch( Exception e ){ 
+					}
 				}
-				else if( System.getProperty("os.name" ).equals(  "Mac OS X" ) ){
-					launchMac( file.getAbsolutePath() ); 
-				}
-				else if( System.getProperties().get( "os.name" ).toString().startsWith(  "Windows" ) ){
-					launchWindows( file.getAbsolutePath() ); 
+				
+				if( !opened ){
+					if( System.getProperty("os.name" ).equals(  "Mac OS X" ) ){
+						launchMac( file.getAbsolutePath() ); 
+					}
+					else if( System.getProperties().get( "os.name" ).toString().startsWith(  "Windows" ) ){
+						launchWindows( file.getAbsolutePath() ); 
+					}
 				}
 			}
 			catch( IOException e ){
 				e.printStackTrace(); 
-				throw new CommandException( "File could not be opened", this ); 
+				throw new CommandException( "File could not be opened", this, e ); 
 			} 
 		}
 		
@@ -95,14 +105,15 @@ public class Open implements Command{
 	 * @throws IOException 
 	 */
 	private void launchWindows( String filename ) throws IOException{
-		Runtime.getRuntime().exec( new String[]{
+		/*Runtime.getRuntime().exec( new String[]{
 				"cmd.exe",
-				"/C",
+				"/Q",
+				"/C", 
 				"start", 
-				"", 
-				filename
-				
-		} );
+				filename, 
+				"&&",
+				"exit" 
+		} );*/
 		
 		Process p = Runtime.getRuntime().exec( "cmd.exe /C start \"\" \"" + filename + "\"" );
 		

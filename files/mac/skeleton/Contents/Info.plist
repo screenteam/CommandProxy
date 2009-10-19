@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>LSUIElement</key>
+	<true/>
+	<key>CFBundleName</key>
+	<string>${id}</string>
+	<key>CFBundleGetInfoString</key>
+	<string>${version}</string>
+	<key>CFBundleVersion</key>
+	<string>${version}</string>
+	<key>CFBundleShortVersionString</key>
+	<string>${version}</string>
+	<key>CFBundleAllowMixedLocalizations</key>
+	<string>true</string>
+	<key>CFBundleExecutable</key>
+	<string>JavaApplicationStub</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleSignature</key>
+	<string>Pde1</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleIconFile</key>
+	<string>icon.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>${id}</string>
+	<key>Java</key>
+	<dict>
+		<key>VMOptions</key>
+		<array>
+			<string>-Xms128M</string>
+			<string>-Xmx256M</string>
+		</array>
+		<key>MainClass</key>
+		<string>commandproxy.launcher.Main</string>
+		<key>JVMVersion</key>
+		<string>1.5+</string>
+		<key>ClassPath</key>
+		<string>$APP_PACKAGE/Contents/MacOS/commandproxy-launcher.jar</string>
+		<key>JVMArchs</key>
+		<array>
+			<string>x86_64</string>
+			<string>i386</string>
+			<string>ppc</string>
+		</array>
+		<key>Properties</key>
+		<dict>
+			<key>APP_PACKAGE</key>
+			<string>$APP_PACKAGE</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

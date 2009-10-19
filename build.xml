@@ -1,25 +1,29 @@
 <project name="Command Proxy" default="release">
-	<fileset id="libs" dir="lib" includes="**/*.jar" />
+	<fileset id="lib.compile" dir="lib" includes="**/*.jar" />
+	<fileset id="lib.cli" dir="lib" includes="**/*.jar"/>
+	<fileset id="lib.launcher" dir="lib" includes="**/*.jar" excludes="jarbundler/**" />
 	
 	<target name="compile">
 		<mkdir dir="bin" />
 		<javac srcdir="src" destdir="bin" target="1.5" debug="true" debuglevel="lines,vars,source">
 			<classpath>
-				<fileset refid="libs" />
+				<fileset refid="lib.compile" />
 			</classpath>
 		</javac>
 	</target>
-		
 	
 	<target name="jars" depends="compile">
 		<mkdir dir="jars" />
 		
+		<jar destfile="jars/commproxy-core.jar">
+			<fileset dir="bin" includes="commandproxy/core/**" />
+		</jar>
 		<jar destfile="jars/commandproxy-cli.jar">
-			<zipgroupfileset dir="lib" includes="*.jar" />
+			<zipgroupfileset refid="lib.cli" />
 			<fileset dir="bin" />
 		</jar>
 		<jar destfile="jars/commandproxy-launcher.jar">
-			<zipgroupfileset dir="lib" includes="*.jar" />
+			<zipgroupfileset refid="lib.launcher" />
 			<fileset dir="bin" excludes="commandproxy/cli/**"/>
 		</jar>
 	</target>
@@ -68,8 +72,25 @@
 			<classpath>
 				<fileset file="jars/commandproxy-cli.jar" />
 			</classpath>
-			<arg line="export mac ../../files/test/OMA.air" />
+			<arg line="export mac -out=OMA.dmg ../../files/test/OMA.air" />
 		</java>
+	</target>
+	
+	<target name="test-mac-install" depends="test-mac">
+		<mkdir dir="release/test/disk" />
+		<exec executable="hdiutil" dir="release/test" >
+			<arg line="attach -mountpoint disk OMA.dmg" />
+		</exec>
+		<exec executable="cp" dir="release/test">
+			<arg line="-R disk/App-Name.app ./" />
+		</exec>
+		<exec executable="umount" dir="release/test">
+			<arg line="disk" />
+		</exec>
+		<delete dir="release/test/disk" />
+		<exec executable="open" dir="release/test">
+			<arg line="-W App-Name.app" />
+		</exec>
 	</target>
 	
 	<target name="test-debug" depends="jars">

@@ -11,11 +11,11 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.Map;
 
-import com.sdicons.json.model.JSONObject;
-import com.sdicons.json.model.JSONValue;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import commandproxy.core.Command;
 import commandproxy.core.CommandException;
-import commandproxy.core.Log;
 import commandproxy.core.Proxy;
 
 /**
@@ -31,7 +31,7 @@ import commandproxy.core.Proxy;
  */
 public class ChangeEncoding implements Command{
 
-	public JSONObject execute( Map<String, String> params ) throws CommandException {
+	public JSONObject execute( Map<String, String> params ) throws CommandException, JSONException {
 		String filename = params.get( "file" );
 		String outputName = params.get( "output" ); 
 		String fromEncodingName = params.get( "from" ); 
@@ -115,11 +115,11 @@ public class ChangeEncoding implements Command{
 			throw new CommandException( "Output file couldn't be created: " + output.getAbsolutePath(), this ); 
 		}
 		
-		JSONObject result = new JSONObject(); 
-		result.getValue().put( "file", JSONValue.decorate( file.getAbsolutePath() ) );
-		result.getValue().put( "output", JSONValue.decorate( output.getAbsolutePath() ) ); 
-		result.getValue().put( "from", JSONValue.decorate( fromEncoding.displayName() ) );
-		result.getValue().put( "to", JSONValue.decorate( toEncoding.displayName() ) );
+		JSONObject result = new JSONObject();
+		result.put( "file", file.getAbsolutePath() );
+		result.put( "output", output.getAbsolutePath() ); 
+		result.put( "from", fromEncoding.displayName() );
+		result.put( "to", toEncoding.displayName() );
 		
 		return result; 
 	}

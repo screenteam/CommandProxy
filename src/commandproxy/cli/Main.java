@@ -37,6 +37,8 @@ public class Main implements Constants{
 			String os = args[1]; 
 			File outFile = null;
 			File airFile = new File( args[args.length-1] );
+			File templateFile = null; 
+			String plugins[] = null;  
 			
 			if( !os.equals( "windows" ) && !os.equals( "mac" ) ){
 				failEarly( "Operating system unknown: " + os, E_UNSUPPORTED_OS ); 
@@ -48,25 +50,37 @@ public class Main implements Constants{
 			
 			for( int i = 1; i < args.length; i++ ){
 				if( args[i].startsWith( "-out=" ) ){
-					outFile = new File( airFile.getParent(), args[i].substring( 5 ) );
+					outFile = new File( args[i].substring( 5 ) );
 					Log.debug.println( "Output to " + outFile.getAbsolutePath() ); 
 				}
 				if( args[i].startsWith( "-verbose" ) ){
 					Log.logToCommandLine( true ); 
 				}
+				if( args[i].startsWith( "-template=" ) ){
+					templateFile = new File( args[i].substring( 10 ) );
+				}
+				if( args[i].startsWith( "-plugins=" ) ){
+					String temp = args[i].substring( 9 ); 
+					if( temp.length() > 0 ){
+						plugins = temp.split( "," ); 
+					}
+					else{
+						plugins = new String[]{}; // include no plugins 
+					}
+				}
 			}
 			
 			if( os.equals( "windows" ) ){
 				try {
-					ExportWindows.export( airFile, outFile );
+					ExportWindows.export( airFile, outFile, plugins );
 				} catch (Exception e) {
 					e.printStackTrace();
-					Tools.fail( e.getMessage(), Constants.E_EXPORT_FAILED ); 
+					Tools.fail( e.getMessage(), Constants.E_EXPORT_FAILED );
 				}
 			}
 			else if( os.equals( "mac" ) ){
 				try{
-					ExportMac.export( airFile, null, null ); 
+					ExportMac.export( airFile, outFile, templateFile, plugins ); 
 				}
 				catch( Exception e ){
 					e.printStackTrace(); 

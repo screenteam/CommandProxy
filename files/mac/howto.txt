@@ -1,0 +1,41 @@
+Hey there! 
+
+To create a pretty mac-installer you have need to perform a bunch of steps. 
+It looks like a lot, but I promise - this hour of work is worth it! 
+
+1. Copy the file template.sparseimage to a location of your choice
+
+2. Mount the image 
+
+3. Rename "App-Name" to whatever your application should be called. 
+   Don't worry about the broken icon, it will be fixed when the 
+   app is exported. 
+
+4. Right click on the label of the image in finder, choose "Information". 
+   Then change "Name and Suffix" according to your application. 
+
+5. Navigate to the mounted image in finder, press Apple+Shift+G. 
+   Finder will ask you for the name of a folder, type ".background"
+
+6. You should find the background image in there, edit it with an image 
+   editor of your choice and overwrite the file. 
+   After clicking back and forth between your harddisk and the image 
+   you should see your new disk image as a background. 
+   (alternatively navigate to the disk image, press Apple+J and drag 
+   an image of your choice onto the "background" section, remember - 
+   the background-image must be on that disk image, or only you can
+   see it!) 
+
+7. Move the App and the Application folder around so they fit your new
+   background image. Add additional files, like a readme, if you feel 
+   like it. 
+
+8. Unmount the image 
+   HOWEVER, BEFORE YOU DO THAT make sure the toolbar is invisble 
+   (Apple+Alt+T) and symbol view is active (Apple+1). Every setting 
+   will be saved when the image is opened the next time.  
+
+9. Next time you use commandproxy add the parameter 
+   -tempalte=folder/my-image.sparseimage
+   Oh - and replace "folder/my-image.sparseimage" with the path to the 
+   actual image :) 

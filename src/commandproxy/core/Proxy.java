@@ -6,12 +6,11 @@ import java.io.PrintStream;
 import java.util.Hashtable;
 import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
 import org.simpleframework.http.core.Container;
-
-import com.sdicons.json.model.JSONObject;
-import com.sdicons.json.model.JSONString;
 
 import commandproxy.core.commands.ChangeEncoding;
 import commandproxy.core.commands.Exec;
@@ -20,22 +19,41 @@ import commandproxy.core.commands.Restart;
 
 public class Proxy implements Container {
 	// All the commands we know
-	private Hashtable<String, Command> commands = new Hashtable<String, Command>(); 
+	private Hashtable<String, Command> commands = new Hashtable<String, Command>();
+	private String key; 
 	
 	
 	/**
 	 * Create a new command proxy
+	 * 
+	 * No requests can be made to this instance without providing the correct 
+	 * security key. 
+	 * Turn this feature of by passing in <i>null</i> as key-value, however, 
+	 * this is only suggested when in debug mode.   
+	 * 
+	 * @param key The security key
 	 */
-	public Proxy(){
+	public Proxy( String key ){
+		this.key = key; 
+		
 		// Register the built-in commands
-		registerCommand( new Open() ); 
-		registerCommand( new Exec() ); 
-		registerCommand( new ChangeEncoding() ); 
-		registerCommand( new Restart() ); 
+		registerCommand( new Open() );
+		registerCommand( new Exec() );
+		registerCommand( new ChangeEncoding() );
+		registerCommand( new Restart() );
 	}
 	
+	/**
+	 * Adds commands from a plugin-loader
+	 */
+	public void loadPlugins( PluginLoader loader ){
+		// Register plugins from the plugin-loader
+		loader.loadPlugins( commands ); 
+	}
+
 	
 	public void handle( Request req, Response res ){
+		res.add( "Content-type", "text/html; charset=UTF-8" ); 
 		Log.debug.println( "==============================" );
 
 		String path = req.getPath().getName(); 
@@ -46,7 +64,7 @@ public class Proxy implements Container {
 		// Do we even have a handler for this?
 		if( command == null ){
 			Log.debug.println( "Invalid command requested: " + path ); 
-			abort( res, 404, "Command not found" );  
+			abort( res, "Command not found: " + path );  
 			return; 
 		}
 		
@@ -59,7 +77,7 @@ public class Proxy implements Container {
 		}
 		catch( IOException e ){
 			Log.debug.println( "Invalid post parameters" ); 
-			abort( res, 500, "Can't read post parameters" );
+			abort( res, "Can't read post parameters" );
 			e.printStackTrace(); 
 			return; 
 		}
@@ -69,17 +87,19 @@ public class Proxy implements Container {
 			Log.debug.printf( "  %10s: %s\n", key, parameters.get( key ) ); 
 		}
 		
+		if( key != null && !key.equals( parameters.get( "commandproxyKey" ) ) ){
+			Log.debug.println( "Invalid security key" ); 
+			abort( res, "Invalid security key provided" ); 
+		}
+		
 		// Awsome, we have everything we need. 
 		// Now let's execute that thing!
-		JSONObject result; 
+		JSONObject result = null; 
 		try{
 			result = command.execute( parameters );
 		}
-		catch( CommandException e ){
-			Log.error.println( e.getMessage() ); 
-			e.printStackTrace( Log.error );
-			result = new JSONObject();
-			result.getValue().put( "error", new JSONString( "Execution failed: " + e.getMessage() ) ); 
+		catch( Exception e ){
+			abort( res, e.getMessage() );
 		} 
 		
 		Log.debug.println( "------------------------------" ); 
@@ -88,9 +108,13 @@ public class Proxy implements Container {
 			result = new JSONObject(); 
 		}
 		
-		Log.debug.println( result.render( true ) );
-		res.add( "Content-type", "text/html; charset=UTF-8" ); 
-		out.println( result.render( true ) );
+		try {
+			Log.debug.println( result.toString( 2 ) );
+		}
+		catch (JSONException e) {
+			e.printStackTrace();
+		}
+		out.println( result.toString() );
 		
 		out.flush(); 
 		out.close(); 
@@ -114,11 +138,12 @@ public class Proxy implements Container {
 	 * @param code The http status code
 	 * @param message An error message, to be a little debug-friendlier
 	 */
-	private void abort( Response res, int code, String message ){
+	private void abort( Response res, String message ){
 		try{
-			res.setCode(  code ); 
-			res.commit(); 
-			res.getPrintStream().print(  message ); 
+			JSONObject result = new JSONObject();
+			result.put( "error", "Execution failed: " + message ); 
+
+			res.getPrintStream().print( result.toString() ); 
 			res.getPrintStream().flush(); 
 			res.close();
 		}
