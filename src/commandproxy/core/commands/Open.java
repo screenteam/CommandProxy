@@ -3,6 +3,7 @@ package commandproxy.core.commands;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 
 import org.json.JSONObject;
@@ -36,15 +37,16 @@ public class Open implements Command{
 	
 	public JSONObject execute( Map<String, String> parameters ) throws CommandException{
 		String filename = parameters.get( "file" );
+		
 		File file = Proxy.getFile( filename, parameters ); 
 		
 		if( file == null ){
 			throw new CommandException( "Paramter file not set!", this ); 
 		}
-		else if( !file.exists() ){
-			throw new CommandException( "File does not exist: " + file.getAbsolutePath(), this ); 
-		}
 		else{
+			boolean isMailto = filename.startsWith("mailto://");
+			boolean isURL = filename.startsWith("http://");
+			
 			try{
 				Log.debug.println( "Opening " + file.getAbsolutePath() ); 
 				
@@ -53,7 +55,24 @@ public class Open implements Command{
 				
 				if( hasDesktopApi ){
 					try{
-						Desktop.getDesktop().open( file );
+						
+						if (isMailto)
+						{
+							Desktop.getDesktop().mail(new URI(filename));
+						}
+						else if (isURL)
+						{
+							Desktop.getDesktop().browse(new URI(filename));
+						}
+						else
+						{
+							if( !file.exists() ){
+								throw new CommandException( "File does not exist: " + file.getAbsolutePath(), this ); 
+							}
+							
+							Desktop.getDesktop().open( file );
+						}
+						
 						opened = true; 
 					}
 					catch( Exception e ){ 
