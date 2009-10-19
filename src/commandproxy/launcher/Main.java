@@ -2,6 +2,7 @@ package commandproxy.launcher;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -15,6 +16,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.LookAndFeel;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import org.simpleframework.transport.connect.SocketConnection;
 
@@ -150,10 +154,19 @@ public class Main implements Constants{
 	 * Fails, super-properly! 
 	 */
 	public static void fail( String message, Exception exception, int exitCode ){
+		// We love native LAF, even for errors! 
+		try {
+			UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
+		}
+		catch( Exception e){
+			// don't give a ****
+		}
+		
 		String options[] = {
 				BUNDLE.getString( "button.ok" ), 
 				BUNDLE.getString( "button.details" )
 		}; 
+		
 		int selection = JOptionPane.showOptionDialog(
 			null, // parent 
 			BUNDLE.getString( "app.launch_failed.text" ), // message 
@@ -238,5 +251,28 @@ public class Main implements Constants{
 		}
 		
 		return key; 
+	}
+	
+	/**
+	 * Writes the publisher-id file that air requires to start
+	 * @throws IOException 
+	 */
+	public static void generatePubID( File pubFile ) throws IOException{
+		String pubid = "";
+
+		char chars[] = { 
+			'A','B','C','D','E','F','G','H','I','J','K','L',
+			'M','N','O','P','Q','R','S','T','U','V','W','X',
+			'Y','Z','0','1','2','3','4','5','6','7','8','9'
+		};
+		
+		for( int i = 0; i < 40; i++ ){
+			pubid += chars[(int)(Math.random()*chars.length)];
+		}
+		pubid += ".1";
+		
+		FileOutputStream fos = new FileOutputStream( pubFile );
+		fos.write( pubid.getBytes() );
+		fos.close(); 
 	}
 }

@@ -7,17 +7,26 @@ import java.util.Vector;
 import commandproxy.core.Constants;
 
 public class LauncherWindows implements Constants{
+	private final static File AIR = new File( "air" );
+	private final static File PUBLISHER_ID = new File( "air\\META-INF\\AIR\\publisherid" );
+	
 	
 	public static Process exec( Vector<String> args ) throws IOException{
-		if( !new File( "air" ).exists() ){
+		if( !AIR.exists() ){
 			Main.fail( "Air-Directory doesn't exist", E_AIR_APP_NOT_FOUND ); 
 		}
 		
+		// We really need this publisher-id file 
+		// to be able to run this! 
+		if( !PUBLISHER_ID.exists() ){
+			Main.generatePubID( PUBLISHER_ID );
+		}
+		
+		// So far so good!
 		File executable = null; 
-		for( File dir : new File( "air" ).listFiles() ){
-			File tmp = new File( dir, dir.getName() + ".exe" ); 
-			if( dir.isDirectory() && tmp.exists() ){
-				executable = tmp; 
+		for( File file : AIR.listFiles() ){
+			if( file.getName().endsWith( "-air.exe" ) ){
+				executable = file; 
 				break; 
 			}
 		}

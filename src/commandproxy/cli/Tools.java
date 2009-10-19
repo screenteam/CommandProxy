@@ -13,9 +13,12 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -231,6 +234,40 @@ public class Tools {
 		out.close(); 
 	}
 
+	
+	/**
+	 * Unzips a file to a directory
+	 * 
+	 * @param A zip-compressed file
+	 * @param destDir The destination directory
+	 * @throws IOException 
+	 * @throws ZipException 
+	 */
+	public static void unzip( File zipSrc, File destDir ) throws ZipException, IOException{
+		ZipFile zip = new ZipFile( zipSrc );
+		Enumeration<? extends ZipEntry> entries = zip.entries();
+		
+		// we'll need those later, definitely! 
+		int len = 0; 
+		byte buffer[] = new byte[4096]; 
+		
+		while( entries.hasMoreElements() ){
+			ZipEntry entry = entries.nextElement(); 
+			File destFile = new File( destDir.getAbsolutePath() + File.separator + entry.getName() ); 
+			if( !destFile.getParentFile().exists() ){
+				destFile.getParentFile().mkdirs(); 
+			}
+			
+			InputStream in = zip.getInputStream( entry );
+			FileOutputStream out = new FileOutputStream( destFile ); 
+			while( ( len = in.read( buffer ) ) > 0 ){
+				out.write( buffer, 0, len ); 
+			}
+			
+			in.close();
+			out.close(); 
+		}
+	}
 
 
 	/**

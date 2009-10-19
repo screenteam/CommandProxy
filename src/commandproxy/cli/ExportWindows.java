@@ -41,7 +41,6 @@ public class ExportWindows implements Constants{
 			setupFile = new File( conf.get( "filename" ) + "-" + conf.get( "version" ) + "-setup.exe" );
 		}
 		conf.put( "setupFile", setupFile.getAbsolutePath() ); 
-		conf.put( "airFile", airFile.getAbsolutePath() ); 
 		
 		// If the icon exists export it... 
 		try{
@@ -82,6 +81,9 @@ public class ExportWindows implements Constants{
 			Tools.fail( "Executable failed to build", E_EXPORT_FAILED );
 		}
 		
+		// Unzip the .air file
+		System.out.println( "Including contents from " + airFile.getName() ); 
+		unzip( airFile, new File( temp, "air" ) ); 
 		
 		// Copy plugin files...
 		File pluginDest = new File( temp, "plugins" );

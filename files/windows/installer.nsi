@@ -90,45 +90,16 @@ Section "Files"
 	SetOutPath $INSTDIR
 	File "${ShortName}.exe"
 	File /nonfatal /r plugins
-	File "/oname=$TEMP\${ShortName}.air" "${AirFile}"
+	File /r air
 	
-	; Is the air-app already installed? 
-	Call tweakAirApp
-	Pop $R8
-	StrCmp $R8 "OK" onlyUnzip
-	Goto realInstall
-	
-	onlyUnzip:
-		;ZipDLL::extractall "$TEMP\${ShortName}.air" "$INSTDIR\test"
-		nsUnzip::Extract "$TEMP\${ShortName}.air" "/d=$INSTDIR\air\${ShortName}" /END
-
-		;MessageBox MB_OK "unzippi pippi nach $INSTDIR\air\${ShortName}"
-		Goto done
-		
-		
 	realInstall: 
 	;MessageBox MB_OK "Real install..."
 	
 	; Now find that airappinstaller.exe
-	Call findAirExecutable
+	Call findAirTemplate
 	Pop $R0
-	nsExec::ExecToStack '"$R0" -silent -location "$INSTDIR\air" "$TEMP\${ShortName}.air"'
-	Pop $0
+	CopyFiles /silent "$R0" "$INSTDIR\air\${ShortName}-air.exe"
 
-	;MessageBox MB_OK "Result=$0; executable=$R0"
-	; Great, it's installed! 
-	; Yea... not really, thing is... the air installer seems to fork a new 
-	; process, which sucks. So let's give this up to ten tries... 
-	StrCpy $R9 ""
-	repeat: 
-		Sleep 1000
-		StrCmp $R9 "XXXXXXXXXX" done
-		Call tweakAirApp
-		Pop $R8
-		StrCmp $R8 "OK" done
-		StrCpy $R9 "X$R9"
-		Goto repeat
-	done: 
 	
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${ShortName}" "DisplayName" "${AppName}"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${ShortName}" "UninstallString" '"$INSTDIR\uninstall.exe"'
@@ -151,7 +122,7 @@ SectionEnd
 Function .onInit
 FunctionEnd
 
-Function findAirExecutable
+Function findAirTemplate
 	ReadRegStr $R0 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Adobe AIR" "InstallLocation"
 	
 	FindFirst $0 $R1 "$R0\Versions\*"
@@ -159,48 +130,19 @@ Function findAirExecutable
 	
 	next: 
 		StrCmp $R1 "" fail
-		IfFileExists "$R0\Versions\$R1\Resources\airappinstaller.exe" found
+		IfFileExists "$R0\Versions\$R1\Resources\template.exe" found
 		FindNext $0 $R1
 		Goto next
 		
 	found:
 		FindClose $0
-		Push "$R0\Versions\$R1\Resources\airappinstaller.exe"
+		Push "$R0\Versions\$R1\Resources\template.exe"
 		Return
 		
 	fail: 
 		FindClose $0
 		MessageBox MB_OK "$(AIR_BROKEN)"
 		Quit
-FunctionEnd
-
-
-Function tweakAirApp
-	${registry::Open} "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" '/N=InstallLocation /T=REG_KEY' $0
-	StrCpy $1 "$INSTDIR\air"
-	StrLen $2 $1
-	StrCpy $4 "NOK"
-	; R0 = path
-	; R1 = name
-	; R2 = value
-	; R3 = type
-	next: 
-		${registry::Find} "$0" $R0 $R1 $R2 $R3
-		StrCmp "$R0" "" done
-		StrCpy $3 "$R2" "$2"
-		StrCmp "$1" "$3" found
-		Goto next
-		
-	found: 
-		WriteRegDWORD HKLM "$R0" "SystemComponent" "1"
-		StrCpy $4 "OK"
-		Goto next
-		
-	done: 
-	${registry::Close} "$0"
-	${registry::Unload}	
-	
-	Push $4
 FunctionEnd
 
 
@@ -316,38 +258,9 @@ Function DetectJRE
 		Push "$R1\bin\java.exe"
 		Push "OK"
 		Return
-	 
 FunctionEnd
 
 Section "Uninstall"
-	; uninstall all the air packages we installed
-	${registry::Open} "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" '/N=InstallLocation /T=REG_KEY' $0
-	StrCpy $1 "$INSTDIR\air"
-	StrLen $2 $1
-
-	;MessageBox MB_OK "uninstall..."
-	
-	next: 
-		${registry::Find} "$0" $R0 $R1 $R2 $R3
-		StrCmp "$R0" "" done
-		;MessageBox MB_OK "$1 == $3?..."
-		StrCpy $3 "$R2" "$2"
-		StrCmp "$1" "$3" found
-		Goto next
-		
-	found: 
-		;MessageBox MB_OK "Read $RO / $R1?..."
-		
-		ReadRegStr $R1 HKLM "$R0" "UninstallString"
-		nsExec::ExecToStack "$R1 /quiet /qn"
-		Goto next
-		
-	done: 
-	;MessageBox MB_OK "dahan!"
-	
-	${registry::Close} "$0"
-	${registry::Unload}	
-	
 	; remove registry keys
 	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${ShortName}"
 	;Delete "$SMPROGRAMS\${AppName}"
