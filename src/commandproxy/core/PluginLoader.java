@@ -28,11 +28,11 @@ public class PluginLoader {
 			String line = ""; 
 			String info = ""; 
 			while( ( line = bin.readLine() ) != null ){
-				info += line; 
+				info += line + "\n";
 			}
 			
 			Log.debug.println( "Loading plugins from the main classloader..." ); 
-			loadPlugins( commands, info, getClass().getClassLoader() ); 
+			loadPlugins( commands, info.trim(), getClass().getClassLoader() ); 
 		}
 		catch( Exception e ){
 			// No one cares! 
