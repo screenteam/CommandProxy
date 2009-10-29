@@ -10,6 +10,9 @@
 				<fileset refid="lib.compile" />
 			</classpath>
 		</javac>
+		<copy todir="bin">
+			<fileset dir="src" excludes="**/*.java" />
+		</copy>
 	</target>
 	
 	<target name="jars" depends="compile">

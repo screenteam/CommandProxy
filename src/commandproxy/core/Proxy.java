@@ -90,6 +90,7 @@ public class Proxy implements Container {
 		if( key != null && !key.equals( parameters.get( "commandproxyKey" ) ) ){
 			Log.debug.println( "Invalid security key" ); 
 			abort( res, "Invalid security key provided" ); 
+			return; 
 		}
 		
 		// Awsome, we have everything we need. 

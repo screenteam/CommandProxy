@@ -29,9 +29,7 @@ public class LauncherWindows implements Constants{
 		args.add( 0, executable.getAbsolutePath() ); 
 		
 		return Runtime.getRuntime().exec(
-			args.toArray( new String[]{} ), 
-			new String[]{}, 
-			executable.getParentFile()
+			args.toArray( new String[]{} ) 
 		); 
 	}
 }

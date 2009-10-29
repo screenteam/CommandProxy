@@ -84,16 +84,17 @@ public class ExportWindows implements Constants{
 		
 		
 		// Copy plugin files...
+		File pluginDest = new File( temp, "plugins" );
+		pluginDest.mkdir();
+		
 		if( getCommandProxyFile( "plugins" ).exists() ){
 			System.out.println( "Copying plugins: " );
 			Vector<File> available = PluginLoader.findJars( getCommandProxyFile( "plugins" ) );  
-			File destination = new File( temp, "plugins" );
-			destination.mkdir();
 			
 			if( plugins == null ){
 				for( File plugin : available ){
 					System.out.println( "> include " + plugin.getName() );
-					copy( plugin, destination );
+					copy( plugin, pluginDest );
 				}
 			}
 			else{
@@ -101,7 +102,7 @@ public class ExportWindows implements Constants{
 				for( File plugin : available ){
 					if( Arrays.binarySearch( plugins, plugin.getName() ) > 0 ){
 						System.out.println( "> include " + plugin.getName() );
-						copy( plugin, destination );
+						copy( plugin, pluginDest );
 					}
 					else{
 						System.out.println( "> skip " + plugin.getName() ); 

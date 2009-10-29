@@ -89,7 +89,7 @@ Section "Files"
 	SectionIn 1 RO	; Full install, cannot be unselected
 	SetOutPath $INSTDIR
 	File "${ShortName}.exe"
-	File /r plugins
+	File /nonfatal /r plugins
 	File "/oname=$TEMP\${ShortName}.air" "${AirFile}"
 	
 	; Is the air-app already installed? 
