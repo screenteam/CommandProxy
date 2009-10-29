@@ -6,6 +6,8 @@
 !define AppVersion "${version}"
 !define SetupFile "${setupFile}"
 !define ShortName "${filename}"
+!define WinRun4j "${winrun4j}"
+
 !define JRE_VERSION "1.6.0"
 !define AirFile "${airFile}"
 !define JRE_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=18714&/jre-6u5-windows-i586-p.exe"
@@ -69,7 +71,7 @@ InstallDir "$PROGRAMFILES\${SHORTNAME}"
 !define MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT "$(COPY_FINISHED_SUBHEAD)"
 !define MUI_INSTFILESPAGE_ABORTHEADER_TEXT "$(COPY_ABORT_HEAD)"
 !define MUI_INSTFILESPAGE_ABORTHEADER_SUBTEXT "$(COPY_ABORT_SUBHEAD)"
-
+!define MUI_UNCONFIRMPAGE_TEXT_TOP "$(UNINSTALL_TEXT)"
 ;--------------------------------
 ;Pages 
 
@@ -92,14 +94,22 @@ Section "Files"
 	File /nonfatal /r plugins
 	File /r air
 	
-	realInstall: 
-	;MessageBox MB_OK "Real install..."
-	
-	; Now find that airappinstaller.exe
+
+	; find air template.exe  
 	Call findAirTemplate
 	Pop $R0
 	CopyFiles /silent "$R0" "$INSTDIR\air\${ShortName}-air.exe"
-
+	
+	; tweak icon
+	File /nonfatal "/oname=$TEMP\${AppName}_icon.ico" icon.ico
+	File "/oname=$TEMP\${AppName}_postinst.exe" "${WinRun4j}\RCEDIT.exe"
+	; add icon at group position 100+105
+	; if this should work you need to use the patched RCEDIT.exe 
+	nsExec::ExecToStack '"$TEMP\${AppName}_postinst.exe" /I "$INSTDIR\air\${ShortName}-air.exe" "$TEMP\${AppName}_icon.ico"'
+	
+	Delete "$TEMP\${AppName}_icon.ico"
+	Delete "$TEMP\${AppName}_postinst.exe"
+	
 	
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${ShortName}" "DisplayName" "${AppName}"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${ShortName}" "UninstallString" '"$INSTDIR\uninstall.exe"'
@@ -261,9 +271,24 @@ Function DetectJRE
 FunctionEnd
 
 Section "Uninstall"
+	;remove preferences folder
+	IfFileExists "$INSTDIR\air\META-INF\AIR\publisherid" deleteSettings skipDelete
+	deleteSettings: 
+	FileOpen $0 "$INSTDIR\air\META-INF\AIR\publisherid" "r"
+	FileRead $0 $1
+	FileClose $0
+	
+	IfFileExists "$APPDATA\${AppName}.$1" goAheadAndDelete skipDelete
+	goAheadAndDelete:
+	RMDir /r "$APPDATA\${AppName}.$1"
+	
+	skipDelete: 
+
 	; remove registry keys
 	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${ShortName}"
 	;Delete "$SMPROGRAMS\${AppName}"
 	RMDir /r "$SMPROGRAMS\${AppName}"
 	RMDir /r "$INSTDIR"
+	
+	
 SectionEnd

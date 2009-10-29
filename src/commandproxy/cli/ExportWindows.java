@@ -1,5 +1,7 @@
 package commandproxy.cli;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -10,7 +12,10 @@ import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.imageio.ImageIO;
 import javax.xml.parsers.ParserConfigurationException;
+
+import net.sf.image4j.codec.ico.ICOEncoder;
 
 import org.xml.sax.SAXException;
 
@@ -20,7 +25,6 @@ import commandproxy.core.PluginLoader;
 
 import static commandproxy.cli.Tools.*; 
 
-// TODO: Don't display nsis output if it didn't fail! 
 public class ExportWindows implements Constants{
 
 	public static void export( File airFile, File setupFile, String plugins[] ) throws IOException, ParserConfigurationException, SAXException, InterruptedException{
@@ -35,6 +39,7 @@ public class ExportWindows implements Constants{
 		System.out.println( "Reading air descriptor..." ); 
 		Hashtable<String, String> conf = getAirConfig( airFile );
 		conf.put( "tempdir", temp.getAbsolutePath() ); 
+		conf.put( "winrun4j", getCommandProxyFile( "files/windows/winrun4j" ).getAbsolutePath() );
 		
 		// Look for the output file
 		if( setupFile == null ){
@@ -60,11 +65,34 @@ public class ExportWindows implements Constants{
 				out.write( buffer, 0, len ); 
 			}
 			
+			// create multiple versions of the icon
+			BufferedImage icon = ImageIO.read( target );
+			Vector<BufferedImage> icons = new Vector<BufferedImage>();
+			int[] sizes = new int[]{ 16, 24, 32, 48, 64, 128 };
+			for( int size : sizes ){
+				BufferedImage bim = new BufferedImage( size, size, BufferedImage.TYPE_INT_ARGB );
+				Image small = icon.getScaledInstance( size, size, Image.SCALE_AREA_AVERAGING );
+				bim.getGraphics().drawImage( small, 0, 0, null ); 
+				icons.add( bim );
+				small.flush();
+			}
+			
+			// write the .ico file
+			ICOEncoder.write( icon, new File( temp, "iconX.ico" ) );
+			ICOEncoder.write( icons, new File( temp, "icon.ico" ) );
 			in.close();
-			out.close(); 
+			out.close();
+			
+			// release it all! 
+			for( BufferedImage bim : icons ){
+				bim.flush(); 
+			}
+			
+			icon.flush(); 
 		}
 		catch( Exception ex ){
-			Log.warn.println( "Icon " + conf.get( "icon/image128x128" ) + " could not be extracted" ); 
+			Log.error.println( "Icon " + conf.get( "icon/image128x128" ) + " could not be extracted" );
+			ex.printStackTrace( Log.error ); 
 		}
 		
 		// Create the windows launcher
@@ -130,7 +158,7 @@ public class ExportWindows implements Constants{
 		}
 		
 		// Done? Done! 
-		deleteDirectory( temp ); 
+		//deleteDirectory( temp ); 
 		System.out.println( "Success!" ); 
 	}
 }

@@ -1,3 +1,7 @@
+LangString UNINSTALL_TEXT L "Achtung - wenn Sie fortfahren wird dieses Programm und alle \
+	dazugehörigen Einstellungen von Ihrem Computer entfernt. "
+	
+
 LangString DEPENDENCIES_HEAD L "Zusätzliche Programme"
 LangString DEPENDENCIES_SUBHEAD L "Diese zusätzlichen Programme werden benötigt:"
 LangString DEPENDENCIES_TEXT L "Wenn Sie mit der Installation fortfahren \

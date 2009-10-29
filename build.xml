@@ -1,7 +1,7 @@
 <project name="Command Proxy" default="release">
 	<fileset id="lib.compile" dir="lib" includes="**/*.jar" />
 	<fileset id="lib.cli" dir="lib" includes="**/*.jar"/>
-	<fileset id="lib.launcher" dir="lib" includes="**/*.jar" excludes="jarbundler/**" />
+	<fileset id="lib.launcher" dir="lib" includes="**/*.jar" excludes="image4j/**"/>
 	
 	<target name="compile">
 		<mkdir dir="bin" />

@@ -12,6 +12,8 @@ import commandproxy.core.Log;
  */
 public class Main implements Constants{
 	public static void main( String[] args ){
+		Log.logToCommandLine( true ); 
+		
 		if( args.length == 0 ){
 			Tools.printUsage();
 			System.exit( 0 ); 
