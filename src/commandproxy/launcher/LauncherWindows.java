@@ -18,8 +18,14 @@ public class LauncherWindows implements Constants{
 		
 		// We really need this publisher-id file 
 		// to be able to run this! 
-		if( !PUBLISHER_ID.exists() ){
-			Main.generatePubID( PUBLISHER_ID );
+//		if( !PUBLISHER_ID.exists() ){
+//			Main.generatePubID( PUBLISHER_ID );
+//		}
+		// ^^^ In fact, we don't anymore. 
+		// Since air 2.0 this actually breaks the launcher, 
+		// so we delete the file if it exists! 
+		if( PUBLISHER_ID.exists() ){
+			PUBLISHER_ID.delete(); 
 		}
 		
 		// So far so good!
