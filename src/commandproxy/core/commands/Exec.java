@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import commandproxy.core.Command;
 import commandproxy.core.CommandException;
+import java.util.TreeMap;
 
 public class Exec implements Command{
 
@@ -19,7 +20,9 @@ public class Exec implements Command{
 		String executable = params.get( "executable"  ); 
 		Vector<String> args = new Vector<String>(); 
 		args.add( executable ); 
-		for( String key : params.keySet() ){
+		
+		TreeMap<String, String> sortedParams = new TreeMap<String, String>(params);
+		for( String key : sortedParams.keySet() ){
 			if( key.startsWith( "arg" ) ){
 				args.add( params.get( key ) ); 
 			}
@@ -36,7 +39,6 @@ public class Exec implements Command{
 			result.put( "exitCode", process.exitValue() );
 			result.put( "output", in.getValue() ); 
 			result.put( "error", err.getValue() );
-			
 			return result; 
 		}
 		catch( IOException e ){
