@@ -41,7 +41,7 @@ public class Open implements Command{
 		File file = Proxy.getFile( filename, parameters ); 
 		
 		if( file == null ){
-			throw new CommandException( "Paramter file not set!", this ); 
+			throw new CommandException( "Parameter file not set!", this ); 
 		}
 		else{
 			boolean isMailto = filename.startsWith("mailto://");
@@ -58,7 +58,7 @@ public class Open implements Command{
 						
 						if (isMailto)
 						{
-							Desktop.getDesktop().mail(new URI(filename));
+							Desktop.getDesktop().mail(new URI("mailto:" + filename.substring(9)));
 						}
 						else if (isURL)
 						{
@@ -76,6 +76,7 @@ public class Open implements Command{
 						opened = true; 
 					}
 					catch( Exception e ){ 
+						throw new CommandException ("Aktion kann nicht ausgeführt werden: " + e.getMessage(), this);
 					}
 				}
 				
